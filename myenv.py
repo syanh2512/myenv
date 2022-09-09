@@ -222,7 +222,7 @@ with torch.no_grad():
     y_pred_cls = y_pred.round()
     acc = y_pred_cls.eq(Y_test).sum() / float(Y_test.shape[0]) * 100
     #print(acc)
-    print(f'accuracy: {acc:.5f}')
+    print(f'accuracy: {acc:.3f}%')
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
