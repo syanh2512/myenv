@@ -146,89 +146,188 @@
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#Logistic Regression
+# #Logistic Regression
 
-from turtle import forward
-import torch
-import torch.nn as nn
-import numpy as np
-from sklearn import datasets
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
-
-
-#prepare data
-bc = datasets.load_breast_cancer()
-X, Y = bc.data, bc.target
-
-n_samples, n_features = X.shape
-# print(n_samples, n_features)
-
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=1234)
-
-#scale
-sc = StandardScaler()
-
-X_train = sc.fit_transform(X_train)
-X_test = sc.fit_transform(X_test)
-
-X_train = torch.from_numpy(X_train.astype(np.float32))
-X_test = torch.from_numpy(X_test.astype(np.float32))
-Y_train = torch.from_numpy(Y_train.astype(np.float32))
-Y_test = torch.from_numpy(Y_test.astype(np.float32))
-
-Y_train = Y_train.view(Y_train.shape[0],1)
-Y_test = Y_test.view(Y_test.shape[0],1)
+# from turtle import forward
+# import torch
+# import torch.nn as nn
+# import numpy as np
+# from sklearn import datasets
+# from sklearn.preprocessing import StandardScaler
+# from sklearn.model_selection import train_test_split
 
 
-#model, f= wx +b, sigmoid at the end
-class LogisticRegression(nn.Module):
-    def __init__(self, n_input_features) -> None:
-        super(LogisticRegression, self).__init__()
-        self.linear = nn.Linear(n_input_features, 1)
+# #prepare data
+# bc = datasets.load_breast_cancer()
+# X, Y = bc.data, bc.target
 
-    def forward(self, x):
-        y_predicted = torch.sigmoid(self.linear(x))
-        return y_predicted
+# n_samples, n_features = X.shape
+# # print(n_samples, n_features)
 
-model = LogisticRegression(n_features)
+# X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=1234)
 
-#loss and optimizer
-learning_rate = 0.1
-loss = nn.BCELoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+# #scale
+# sc = StandardScaler()
 
-#training loop
-num_epochs = 200
-for epoch in range(num_epochs):
-    #forward pass
-    y_pred = model(X_train)
-    l = loss(y_pred, Y_train)
+# X_train = sc.fit_transform(X_train)
+# X_test = sc.fit_transform(X_test)
 
-    #backward pass, gradients
-    l.backward()
+# X_train = torch.from_numpy(X_train.astype(np.float32))
+# X_test = torch.from_numpy(X_test.astype(np.float32))
+# Y_train = torch.from_numpy(Y_train.astype(np.float32))
+# Y_test = torch.from_numpy(Y_test.astype(np.float32))
 
-    #update gradients
-    optimizer.step()
+# Y_train = Y_train.view(Y_train.shape[0],1)
+# Y_test = Y_test.view(Y_test.shape[0],1)
 
-    #zero gradients
-    optimizer.zero_grad()
 
-    if (epoch+1)%20 ==0:
-        print(f'epoch : {epoch+1}, loss = {l.item():.5f}')
+# #model, f= wx +b, sigmoid at the end
+# class LogisticRegression(nn.Module):
+#     def __init__(self, n_input_features) -> None:
+#         super(LogisticRegression, self).__init__()
+#         self.linear = nn.Linear(n_input_features, 1)
 
-with torch.no_grad():
-    y_pred = model(X_test)
-    y_pred_cls = y_pred.round()
-    acc = y_pred_cls.eq(Y_test).sum() / float(Y_test.shape[0]) * 100
-    #print(acc)
-    print(f'accuracy: {acc:.3f}%')
+#     def forward(self, x):
+#         y_predicted = torch.sigmoid(self.linear(x))
+#         return y_predicted
+
+# model = LogisticRegression(n_features)
+
+# #loss and optimizer
+# learning_rate = 0.1
+# loss = nn.BCELoss()
+# optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+# #training loop
+# num_epochs = 200
+# for epoch in range(num_epochs):
+#     #forward pass
+#     y_pred = model(X_train)
+#     l = loss(y_pred, Y_train)
+
+#     #backward pass, gradients
+#     l.backward()
+
+#     #update gradients
+#     optimizer.step()
+
+#     #zero gradients
+#     optimizer.zero_grad()
+
+#     if (epoch+1)%20 ==0:
+#         print(f'epoch : {epoch+1}, loss = {l.item():.5f}')
+
+# with torch.no_grad():
+#     y_pred = model(X_test)
+#     y_pred_cls = y_pred.round() #làm tròn
+#     acc = y_pred_cls.eq(Y_test).sum() / float(Y_test.shape[0]) * 100
+#     #print(acc)
+#     print(f'accuracy: {acc:.3f}%')
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# #Dataset and DataLoader
+
+# import torch
+# import torchvision
+# from torch.utils.data import Dataset, DataLoader
+# import numpy as np
+# import math
+
+
+# class WineDataset(Dataset):
+#     def __init__(self) -> None:
+#         #data loading
+#         xy = np.loadtxt("wine.csv", delimiter=",", dtype=np.float32, skiprows=1)
+#         self.x = torch.from_numpy(xy[:, 1:])
+#         self.y = torch.from_numpy(xy[:, [0]]) # n_samples, 1
+#         self.n_samples = xy.shape[0]
+
+#     def __getitem__(self, index):
+#         return self.x[index], self.y[index]
+
+
+#     def __len__(self):
+#         return self.n_samples
+
+# dataset = WineDataset()
+# # first_data = dataset[177]
+# # features, labels = first_data
+# # print(features, labels)
+# dataloader = DataLoader(dataset=dataset, batch_size=4, shuffle=True, num_workers=2)
+
+# num_epochs = 2
+# total_samples = len(dataset)
+# n_iterations = math.ceil(total_samples/4)
+# #print(total_samples, n_iterations)
+
+# for epoch in range(num_epochs):
+#     for i, (inputs, labels) in enumerate(dataloader):
+#         #forward backward, update
+#         if (i+1) % 5 == 0:
+#             print(f'epoch {epoch+1}/{num_epochs}, step {i+1}/{n_iterations}, inputs {inputs.shape}')
+
+# torchvision.datasets.MNIST()
 
 
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+##Data Transforms
+
+from genericpath import samefile
+from random import sample
+import torch
+import torchvision
+from torch.utils.data import Dataset, DataLoader
+import numpy as np
+import math
+
+
+class WineDataset(Dataset):
+    def __init__(self, transform=None):
+        #data loading
+        xy = np.loadtxt("wine.csv", delimiter=",", dtype=np.float32, skiprows=1)
+        self.x = xy[:, 1:]
+        self.y = xy[:, [0]] # n_samples, 1
+        self.n_samples = xy.shape[0]
+        self.transform = transform
+
+    def __getitem__(self, index):
+        sample = self.x[index], self.y[index]
+        if self.transform:
+            sample = self.transform(sample)
+        return sample
+
+
+    def __len__(self):
+        return self.n_samples
+
+class ToTensor:
+    def __call__(self, sample):
+        inputs, targets = sample
+        return torch.from_numpy(inputs), torch.from_numpy(targets)
+
+class MulTransform:
+    def __init__(self, factor):
+        self.factor = factor
+    
+    def __call__(self, sample):
+        inputs, target = sample
+        inputs *=self.factor
+        return inputs, target
+
+dataset = WineDataset(transform=None)
+first_data = dataset[0]
+features, labels = first_data
+print(features, labels)
+print(type(features), type(labels))
+
+composed = torchvision.transforms.Compose([ToTensor(), MulTransform(4)])
+dataset = WineDataset(transform=composed)
+first_data = dataset[0]
+features, labels = first_data
+print(features, labels)
+print(type(features), type(labels))
