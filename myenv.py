@@ -275,59 +275,263 @@
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-##Data Transforms
+# #Data Transforms
 
-from genericpath import samefile
-from random import sample
-import torch
-import torchvision
-from torch.utils.data import Dataset, DataLoader
-import numpy as np
-import math
-
-
-class WineDataset(Dataset):
-    def __init__(self, transform=None):
-        #data loading
-        xy = np.loadtxt("wine.csv", delimiter=",", dtype=np.float32, skiprows=1)
-        self.x = xy[:, 1:]
-        self.y = xy[:, [0]] # n_samples, 1
-        self.n_samples = xy.shape[0]
-        self.transform = transform
-
-    def __getitem__(self, index):
-        sample = self.x[index], self.y[index]
-        if self.transform:
-            sample = self.transform(sample)
-        return sample
+# from genericpath import samefile
+# from random import sample
+# import torch
+# import torchvision
+# from torch.utils.data import Dataset, DataLoader
+# import numpy as np
+# import math
 
 
-    def __len__(self):
-        return self.n_samples
+# class WineDataset(Dataset):
+#     def __init__(self, transform=None):
+#         #data loading
+#         xy = np.loadtxt("wine.csv", delimiter=",", dtype=np.float32, skiprows=1)
+#         self.x = xy[:, 1:]
+#         self.y = xy[:, [0]] # n_samples, 1
+#         self.n_samples = xy.shape[0]
+#         self.transform = transform
 
-class ToTensor:
-    def __call__(self, sample):
-        inputs, targets = sample
-        return torch.from_numpy(inputs), torch.from_numpy(targets)
+#     def __getitem__(self, index):
+#         sample = self.x[index], self.y[index]
+#         if self.transform:
+#             sample = self.transform(sample)
+#         return sample
 
-class MulTransform:
-    def __init__(self, factor):
-        self.factor = factor
+
+#     def __len__(self):
+#         return self.n_samples
+
+# class ToTensor:
+#     def __call__(self, sample):
+#         inputs, targets = sample
+#         return torch.from_numpy(inputs), torch.from_numpy(targets)
+
+# class MulTransform:
+#     def __init__(self, factor):
+#         self.factor = factor
     
-    def __call__(self, sample):
-        inputs, target = sample
-        inputs *=self.factor
-        return inputs, target
+#     def __call__(self, sample):
+#         inputs, targets = sample
+#         inputs *=self.factor
+#         return inputs, targets
 
-dataset = WineDataset(transform=None)
-first_data = dataset[0]
-features, labels = first_data
-print(features, labels)
-print(type(features), type(labels))
+# dataset = WineDataset(transform=None)
+# first_data = dataset[0]
+# features, labels = first_data
+# print(features, labels)
+# print(type(features), type(labels))
 
-composed = torchvision.transforms.Compose([ToTensor(), MulTransform(4)])
-dataset = WineDataset(transform=composed)
-first_data = dataset[0]
-features, labels = first_data
-print(features, labels)
-print(type(features), type(labels))
+# composed = torchvision.transforms.Compose([ToTensor(), MulTransform(4)])
+# dataset = WineDataset(transform=composed)
+# first_data = dataset[0]
+# features, labels = first_data
+# print(features, labels)
+# print(type(features), type(labels))
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# #Softmax and Cross-entropy Loss
+
+# import torch
+# import torch.nn as nn
+# import numpy as np
+
+# def softmax(x):
+#     return np.exp(x) / np.sum(np.exp(x), axis = 0)
+
+# def cross_entropy(real, predicted):
+#     loss = -np.sum(real * np.log(predicted))
+#     return loss
+
+# # x=np.array([2.0, 1.0, 0.1])
+# # outputs = softmax(x)
+# # print('softmax numpy:', outputs)
+
+# # x = torch.tensor([2.0, 1.0, 0.1])
+# # outputs = torch.softmax(x, dim=0)
+# # print(outputs)
+
+# loss = nn.CrossEntropyLoss()
+
+# # 3 samples
+# y=torch.tensor([2, 0, 1])
+
+# y_pred_good = torch.tensor([[0.1,1.0,2.1],[2.0,1.0,0.1],[0.1,3.0,0.1]])
+# y_pred_bad = torch.tensor([[2.1,1.0,0.1],[0.1,1.0,2.1],[0.1,3.0,0.1]])
+
+# l1 = loss(y_pred_good,y)
+# l2 = loss(y_pred_bad, y)
+
+# print(l1.item())
+# print(l2.item())
+
+
+# #_, predictions means only needs predictions
+# _,predictions1 = torch.max(y_pred_good, 1)
+# _,predictions2 = torch.max(y_pred_bad, 1)
+
+# print(predictions1)
+# print(predictions2)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# #Activation functions
+
+# #Step, 
+# # sigmoid (finally layer of binary classification problems), 
+# # tanH (for hidden layers), 
+# # ReLU (for hidden layers),
+# # Leaky ReLU (improved ReLU, solved vanishing gradient problem),
+# # Softmax (good in last layer in multi class classification problems)
+
+# from turtle import forward
+# import torch
+# import torch.nn as nn
+# import torch.nn.functional as F
+
+# #option 1: create nn modules
+# class NeuralNet(nn.Module):
+#     def __init__(self, input_size, hidden_size) -> None:
+#         super(NeuralNet, self).__init__()
+#         self.linear1 = nn.Linear(input_size, hidden_size)
+#         self.relu = nn.ReLU()
+#         # nn.Sigmoid
+#         # nn.Softmax
+#         # nn.Tanh
+#         # nn.LeakyReLU
+#         self.linear2 = nn.Linear(hidden_size,1)
+#         self.sigmoid = nn.Sigmoid()
+
+#     def forward(self, x):
+#         out=self.linear1(x)
+#         out = self.relu(out)
+#         out = self.linear2(out)
+#         out = self.sigmoid(out)
+#         return out
+
+
+# #option 2: use activation function in forward pass
+# class NeuralNet(nn.Module):
+#     def __init__(self, input_size, hidden_size) -> None:
+#         super(NeuralNet, self).__init__()
+#         self.linear1 = nn.Linear(input_size, hidden_size)
+#         self.linear2 = nn.Linear(hidden_size,1)
+
+#     def forwar(self, x):
+#         out = torch.relu(self.linear1)
+#         out = torch.sigmoid(self.linear2)
+#         # F.relu
+#         # F.leaky_relu
+#         # torch.softmax
+#         # torch.tanh
+#         return out
+
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#Feed-Forward Neural Net
+
+
+from tkinter import HIDDEN
+import torch
+import torch.nn as nn
+import torchvision
+import torchvision.transforms as transforms
+import matplotlib.pyplot as plt
+from torch.utils.data import DataLoader
+
+#device config
+#device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+#hyper parameters
+input_size = 784 #28x28
+hidden_size = 100
+num_classes = 10
+num_epochs = 2
+batch_size = 100
+learning_rate = 0.01
+
+#MNIST dataset
+train_dataset=torchvision.datasets.MNIST(root='./data', train=True, transform=transforms.ToTensor(),download=True)
+test_dataset=torchvision.datasets.MNIST(root='./data', train=False, transform=transforms.ToTensor())
+
+train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
+
+examples = iter(train_loader)
+samples, labels = examples.next()
+#print(samples.shape, labels.shape)
+
+
+for i in range(6):
+    plt.subplot(2,3, i+1)
+    plt.imshow(samples[i][0], cmap='gray') # samples[i][0] 0 mean 1 channel
+#plt.show()
+
+class NeuralNet(nn.Module):
+    def __init__(self, input_size, hidden_size, num_classes):
+        super(NeuralNet, self).__init__()
+        self.l1 = nn.Linear(input_size, hidden_size)
+        self.relu = nn.ReLU()
+        self.l2= nn.Linear(hidden_size, num_classes)
+    
+    def forward(self, x):
+        out = self.l1(x)
+        out = self.relu(out)
+        out = self.l2(out)
+        return out
+
+model = NeuralNet(input_size, hidden_size, num_classes)
+
+#loss and optimizer
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+#training loop
+n_total_steps = len(train_loader)
+for epoch in range(num_epochs):
+    for i, (images, labels) in enumerate(train_loader):
+        #image = ([100, 1, 28, 28])
+        #100, 784
+        images = images.reshape(-1, 28*28)
+        labels = labels
+
+        #forward
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+
+
+        #backward
+        optimizer.zero_grad()
+        loss.backward()
+        #update paratemters
+        optimizer.step()
+
+
+        if (i+1) % 100 ==0:
+            print(f'epoch {epoch+1}/{num_epochs}, step {i+1}/{n_total_steps}, loss = {loss:.4f}')
+
+#test
+with torch.no_grad():
+    n_correct = 0
+    n_samples = 0
+    for images, labels in test_loader:
+        images = images.reshape(-1, 28*28)
+        labels = labels
+        outputs = model(images)
+
+        #value, index
+        _, predictions = torch.max(outputs, 1)
+        n_samples += labels.shape[0]
+        n_correct += (predictions == labels).sum().item()
+
+    acc = 100.0 * n_correct/n_samples
+    print(f'accuracy = {acc}%')
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
