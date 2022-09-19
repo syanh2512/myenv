@@ -445,16 +445,21 @@ import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
+import sys
+
+from torch.utils.tensorboard import SummaryWriter
+
+writer =SummaryWriter('runs/mnist')
 
 #device config
-#device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 #hyper parameters
 input_size = 784 #28x28
-hidden_size = 100
+hidden_size = 500
 num_classes = 10
-num_epochs = 2
-batch_size = 100
+num_epochs = 1
+batch_size = 64
 learning_rate = 0.01
 
 #MNIST dataset
@@ -472,7 +477,12 @@ samples, labels = examples.next()
 for i in range(6):
     plt.subplot(2,3, i+1)
     plt.imshow(samples[i][0], cmap='gray') # samples[i][0] 0 mean 1 channel
+
+img_grid = torchvision.utils.make_grid(samples)
+writer.add_image('mnist_images', img_grid)
 #plt.show()
+#writer.close()
+#sys.exit()
 
 class NeuralNet(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes):
@@ -493,8 +503,15 @@ model = NeuralNet(input_size, hidden_size, num_classes)
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
+writer.add_graph(model, samples.reshape(-1, 28*28))
+writer.close()
+#sys.exit()
+
 #training loop
 n_total_steps = len(train_loader)
+
+running_loss = 0.0
+running_correct = 0
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
         #image = ([100, 1, 28, 28])
@@ -513,9 +530,17 @@ for epoch in range(num_epochs):
         #update paratemters
         optimizer.step()
 
+        running_loss += loss.item()
 
-        if (i+1) % 100 ==0:
+        _, predictions = torch.max(outputs, 1)
+        running_correct += (predictions == labels).sum().item()
+
+        if (i+1) % 300 == 0:
             print(f'epoch {epoch+1}/{num_epochs}, step {i+1}/{n_total_steps}, loss = {loss:.4f}')
+            writer.add_scalar('training loss', running_loss/100, epoch * n_total_steps + i)
+            writer.add_scalar('accuracy', running_correct/100, epoch * n_total_steps + i)
+            running_loss = 0.0
+            running_correct = 0
 
 #test
 with torch.no_grad():
@@ -532,6 +557,43 @@ with torch.no_grad():
         n_correct += (predictions == labels).sum().item()
 
     acc = 100.0 * n_correct/n_samples
-    print(f'accuracy = {acc}%')
+    print(f'accuracy = {acc}% , {n_correct}/{n_samples}')
+
+#TensorBoard learned
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#Save and Load Models
+
+import torch
+import torch.nn as nn
+
+# ### Complete Model ###
+# torch.save(model, PATH)
+
+# model = torch.load(PATH)
+# model.eval()
+
+# ### State dict ###
+
+# torch.save(model.state_dict(), PATH)
+
+# #model must be created again with parameters
+# model = Model(*args, **kargs)
+# model.load_state_dict(torch.load(PATH))
+# model.eval()
+
+
+### Examples ###
+
+FILE = 'model.pth'
+torch.save(model.state_dict(), FILE)
+
+#model = torch.load(FILE)
+#model.eval()
+
+
+#for param in model.parameters():
+#    print(param)
+
+
