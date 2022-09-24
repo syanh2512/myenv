@@ -97,4 +97,4 @@ if __name__ == '__main__':
     print(category_lines['Vietnamese'][:5])
     
     print(letter_to_tensor('J')) # [1, 57]
-    print(line_to_tensor('katarinamalaysia').size()) # [5, 1, 57]
+    print(line_to_tensor('katarinamalaysia').size()) # [16, 1, 57]
