@@ -73,8 +73,8 @@ def training(line_tensor, category_tensor):
 
 current_loss = 0 
 all_losses = []
-plot_steps, print_steps = 2000, 5000
-n_iters = 100000
+plot_steps, print_steps = 10000, 10000
+n_iters = 500000
 
 for i in range(n_iters):
     categore, line, category_tensor, line_tensor = random_training_example(category_lines, all_categories)
@@ -114,5 +114,6 @@ while True:
         break
 
     predict(sentence)
+
 
 
